@@ -37,7 +37,7 @@ class CardTable extends JFrame
    // default constructor
    // sets up the initial view, which is really
    // the table and it's main holders
-   public GameView()
+   public CardTable()
    {
       super();
       setTitle(pnlTitles[0]);
