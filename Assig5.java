@@ -20,6 +20,21 @@ public class Assig5
       // build the file names ("AC.gif", "2C.gif", "3C.gif", "TC.gif", etc.)
       // in a SHORT loop.  For each file name, read it in and use it to
       // instantiate each of the 57 Icons in the icon[] array.
+      
+      int i = 0; // Used to track index position of icon array.
+      
+      // Loop through the suit then available card values and add them to the icon array.
+      for (int j = 0; j < 4; j++)
+      {
+         for (int k = 0; k < 14; k++)
+         {
+            icon[i] = new ImageIcon("images/" + turnIntIntoCardValue(k) + turnIntIntoCardSuit(j) + ".gif");
+            i++;
+         }
+      }
+      
+      // Define and add the back-of-card to icon array - index was already incremented in for loop
+      icon[i] = new ImageIcon("images/BK.gif");
    }
    
    // turns 0 - 13 into "A", "2", "3", ... "Q", "K", "X"
