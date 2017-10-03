@@ -25,13 +25,33 @@ public class Assig5
    // turns 0 - 13 into "A", "2", "3", ... "Q", "K", "X"
    static String turnIntIntoCardValue(int k)
    {
+      String[] cardValue = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "X"};
       
+      // Verify the passed int is within the number of items in cardValue
+      if (k >= 0 && k <= 13)
+      {
+         return cardValue[k];
+      }
+      else
+      {
+         return "";
+      }
    }
    
    // turns 0 - 3 into "C", "D", "H", "S"
    static String turnIntIntoCardSuit(int j)
    {
+      String [] cardSuit = {"C", "D", "H", "S"};
       
+      // Verify the passed int is within the number of items in cardSuit
+      if (j >= 0 && j <= 3)
+      {
+         return cardSuit[j];
+      }
+      else
+      {
+         return "";
+      }
    }
    
    // main to throw all JLabels out 
