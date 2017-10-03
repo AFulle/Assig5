@@ -8,19 +8,22 @@
 
 import javax.swing.*;
 import java.util.Random;
+import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
 
 
-public class Assig5 {
+public class Assig5_2 {
 
-    static final int NUM_CARDS_PER_HAND = 7;
-    static final int NUM_PLAYERS = 2;
-    static JLabel[] computerLabels = new JLabel[NUM_CARDS_PER_HAND];
-    static JLabel[] humanLabels = new JLabel[NUM_CARDS_PER_HAND];
-    static JLabel[] playedCardsLabels = new JLabel[NUM_PLAYERS];
-    static JLabel[] playLabelText = new JLabel[NUM_PLAYERS];
+    private static final int NUM_CARDS_PER_HAND = 7;
+    private static final int NUM_PLAYERS = 2;
+    private static JLabel[] computerLabels = new JLabel[NUM_CARDS_PER_HAND];
+    private static JLabel[] humanLabels = new JLabel[NUM_CARDS_PER_HAND];
+    private static JLabel[] playedCardsLabels = new JLabel[NUM_PLAYERS];
+    private static JLabel[] playLabelText = new JLabel[NUM_PLAYERS];
 
 
-    static Card generateRandomCard() {
+    private static Card generateRandomCard() {
         Random random = new Random();
         return new Card(GUICard.cardsValues[random.nextInt(GUICard.cardsValues.length)],
                 Suit.values()[random.nextInt(GUICard.cardsSuits.length)]);
@@ -52,16 +55,10 @@ public class Assig5 {
     }
 }
 
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.TitledBorder;
-import java.awt.*;
-
-
 class CardTable extends JFrame {
 
-    static int MAX_CARDS_PER_HAND = 56;
-    static int MAX_PLAYERS = 2;
+    private static int MAX_CARDS_PER_HAND = 56;
+    private static int MAX_PLAYERS = 2;
 
     private int numCardsPerHand;
     private int numPlayers;
@@ -94,9 +91,6 @@ class CardTable extends JFrame {
         return numPlayers;
     }
 }
-
-import javax.swing.*;
-
 
 class GUICard {
 
