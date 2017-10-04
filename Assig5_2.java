@@ -41,15 +41,19 @@ public class Assig5_2 {
             myCardTable.pnlComputerHand.add(computerLabels[i]);
             myCardTable.pnlHumanHand.add(humanLabels[i]);
         }
+        
+        JLabel computerCard = new JLabel("Computer", JLabel.CENTER);
+        computerCard.setIcon(GUICard.getIcon(generateRandomCard()));
+        computerCard.setVerticalTextPosition(JLabel.BOTTOM);
+        computerCard.setHorizontalTextPosition(JLabel.CENTER);
 
-        playedCardsLabels[0] = new JLabel(GUICard.getIcon(generateRandomCard()));
-        playedCardsLabels[1] = new JLabel(GUICard.getIcon(generateRandomCard()));
-        playLabelText[0] = new JLabel("Computer", JLabel.CENTER);
-        playLabelText[1] = new JLabel("Computer", JLabel.CENTER);
-        myCardTable.pnlPlayArea.add(playedCardsLabels[0]);
-        myCardTable.pnlPlayArea.add(playedCardsLabels[1]);
-        myCardTable.pnlPlayArea.add(playLabelText[0]);
-        myCardTable.pnlPlayArea.add(playLabelText[1]);
+        JLabel humanCard = new JLabel("Player", JLabel.CENTER);
+        humanCard.setIcon(GUICard.getIcon(generateRandomCard()));
+        humanCard.setVerticalTextPosition(JLabel.BOTTOM);
+        humanCard.setHorizontalTextPosition(JLabel.CENTER);
+
+        myCardTable.pnlPlayArea.add(computerCard);
+        myCardTable.pnlPlayArea.add(humanCard);
 
         myCardTable.setVisible(true);
     }
@@ -64,6 +68,7 @@ class CardTable extends JFrame {
     private int numPlayers;
 
     public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea;
+    public JButton replayBtn;
 
     public CardTable(String title, int numCardsPerHand, int numPlayers) throws HeadlessException {
         this.numCardsPerHand = numCardsPerHand;
@@ -71,16 +76,9 @@ class CardTable extends JFrame {
 
         setTitle(title);
         setLayout(new BorderLayout());
-        pnlComputerHand = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
-        pnlComputerHand.setBorder(new TitledBorder("Computer Hand"));
-        pnlPlayArea = new JPanel(new GridLayout(2, 2, 5, 0));
-        pnlPlayArea.setBorder(new TitledBorder("Playing Area"));
-        pnlHumanHand = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
-        pnlHumanHand.setBorder(new TitledBorder("Your Hand"));
-
-        add(pnlComputerHand, BorderLayout.NORTH);
-        add(pnlPlayArea, BorderLayout.CENTER);
-        add(pnlHumanHand, BorderLayout.SOUTH);
+ 
+        initReplayButton();
+        initPanels();
     }
 
     public int getNumCardsPerHand() {
@@ -90,6 +88,44 @@ class CardTable extends JFrame {
     public int getNumPlayers() {
         return numPlayers;
     }
+    
+    public void initReplayButton()
+    {
+       replayBtn = new JButton("Start New Game");
+       int btnWidth = 100, btnHeight = 30;
+       replayBtn.setBounds((int) getSize().getWidth()/2 - btnWidth/2, (int) getSize().getHeight()/2 - btnHeight/2, btnWidth, btnHeight);
+       add(replayBtn);
+       replayBtn.setVisible(false);
+       replayBtn.setEnabled(false);
+    }
+    
+    private void setupPanel(final JPanel panel, final String title, int x, int y, int minHeight)
+    {
+       // Create Title Border With Title at top left
+       final TitledBorder border = new TitledBorder(title);
+       border.setTitleJustification(TitledBorder.LEFT);
+       border.setTitlePosition(TitledBorder.TOP);
+
+       // Initialize JPanel
+       panel.setBorder(border);
+       panel.setLocation(x, y);
+       panel.setMinimumSize(new Dimension((int) panel.getSize().getWidth(), minHeight));
+       panel.setEnabled(true);
+       panel.setVisible(true);
+    }
+    
+    private void initPanels()
+    {
+       setupPanel(pnlComputerHand = new JPanel(), "Computer Hand", 0, 0, 100);
+       add(pnlComputerHand, BorderLayout.NORTH);
+       setupPanel(pnlPlayArea = new JPanel(), "Playing Area", 0, pnlComputerHand.getHeight(), 100);
+       pnlPlayArea.setLayout(new GridLayout(1, 2));
+       add(pnlPlayArea, BorderLayout.CENTER);
+       setupPanel(pnlHumanHand = new JPanel(), "Your Hand", 0, pnlComputerHand.getHeight() + pnlPlayArea.getHeight(), 100);
+       add(pnlHumanHand, BorderLayout.SOUTH);
+    }
+    
+    
 }
 
 class GUICard {
@@ -164,6 +200,14 @@ class Card {
     public Card(char value, Suit suit) {
         set(value, suit);
     }
+    
+    // Copy Constructor
+    public Card(final Card originalCard)
+    {
+       value = originalCard.value;
+       suit = originalCard.suit;
+       errorFlag = originalCard.errorFlag;
+    }
 
     // Method to get String representation of Card
     public String toString() {
@@ -233,6 +277,12 @@ class Card {
             //if changes were not made - finish sorting
             if (!changesMade) break;
         }
+    
+    }
+    
+    public static int cardValue(final Card card)
+    {
+       return Card.valueRanks.length - new String(valueRanks).indexOf(card.getValue());
     }
 
     // Main method which executes test code for Card
@@ -432,6 +482,17 @@ class Hand {
         } else {
             return false;
         }
+    }
+    
+    public Card playCard()
+    {
+       if(numCards <= 0)
+       {
+          return new Card('?', Suit.Diamonds);
+       }
+       Card card = new Card(myCards[--numCards]); // cache temp location of top card deep copy
+       myCards[numCards] = null; // implicitly call destructor by re-assigning to null
+       return card; // return deep copy
     }
     
     // Method to play Card from Hand

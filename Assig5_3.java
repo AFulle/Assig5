@@ -6,20 +6,218 @@
  * 
  */
 
-public class Assig5_3 extends CardGameFramework
+import javax.swing.*;
+import java.util.Random;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+
+public class Assig5_3
 {
+   
+   private static final int NUM_CARDS_PER_HAND = 7;
+   private static final int NUM_PLAYERS = 2;
+   private static int NUM_CARDS_IN_PLAY = 2;
+   private static JLabel[] computerLabels = new JLabel[NUM_CARDS_PER_HAND];
+   private static JLabel[] humanLabels = new JLabel[NUM_CARDS_PER_HAND];
+   private static JLabel[] playedCardsLabels = new JLabel[NUM_PLAYERS];
+   private static JLabel[] playLabelText = new JLabel[NUM_PLAYERS];
+
    public static void main(String[] args)
    {
-      numPacksPerDeck = 1;
-      numJokersPerPack = 0;
-      numUnusedCardsPerPack = 0;
-      unusedCardsPerPack = null;
-
-      CardGameFramework highCardGame = new CardGameFramework( 
-            numPacksPerDeck, numJokersPerPack,  
-            numUnusedCardsPerPack, unusedCardsPerPack, 
-            NUM_PLAYERS, NUM_CARDS_PER_HAND);
+      
+      HighCardFramework highCardGame = getCardGameFramework();
+      
+      CardTable myCardTable = setupTable();
+      myCardTable.setSize(800, 600);
+     
+      startGame(highCardGame, myCardTable);
+      
    }
+   
+   private static HighCardFramework getCardGameFramework()
+   {
+      int numPacksPerDeck = 1;
+      int numJokersPerPack = 0;
+      int numUnusedCardsPerPack = 0;
+      Card[] unusedCardsPerPack = null;
+
+      // setup the game framework
+      final HighCardFramework highCardGame = new HighCardFramework(numPacksPerDeck, numJokersPerPack, numUnusedCardsPerPack,
+              unusedCardsPerPack, NUM_PLAYERS, NUM_CARDS_PER_HAND, NUM_CARDS_IN_PLAY);
+      return highCardGame;
+   }
+   
+   // Set the table
+   private static CardTable setupTable()
+   {
+      CardTable myCardTable = new CardTable("CardTable", NUM_CARDS_PER_HAND, NUM_PLAYERS);
+      myCardTable.setLocationRelativeTo(null);
+      myCardTable.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+      return myCardTable;
+   }
+   
+   // Event Handler
+   private static void initEventHandlers(HighCardFramework highCardGame, CardTable cardTable)
+   {
+      for(int i = 0; i < humanLabels.length; i++)
+      {
+         // remove the old mouse listeners
+         for(int j = 0; i < humanLabels[i].getMouseListeners().length; j++)
+         {
+            humanLabels[i].removeMouseListener(humanLabels[i].getMouseListeners()[j]);
+         }
+         // add new mouse listener
+         humanLabels[i].addMouseListener(new HighCardAdaptor(cardTable, highCardGame));
+      }
+   }
+   
+   
+   public static void initPlayArea(CardTable cardTable)
+   {
+      for(Component component : cardTable.pnlPlayArea.getComponents())
+      {
+         if(component instanceof JLabel)
+         {
+            ((JLabel) component).setIcon(GUICard.getBackCardIcon());
+         }
+      }
+   }
+      public static void computerTurn(HighCardFramework highCardGame, CardTable cardTable, boolean computerFirst)
+      {
+         final Component[] inPlay = cardTable.pnlPlayArea.getComponents();
+         final Hand hand = highCardGame.getHand(1);
+         hand.sort();
+         Card computersPick = null;
+
+         if(computerFirst)
+         {
+            computersPick = hand.playCard(hand.getNumCards() - 1);
+         }
+         else
+         {
+            // find a card that can beat the card in play
+            for(int i = 0; i <  hand.getNumCards(); i++)
+            {
+               if(valueOf(hand.inspectCard(i)) > valueOf(highCardGame.getPlayerCardInPlay()))
+               {
+                  computersPick = hand.playCard(i);
+                  break;
+               }
+            }
+            if(computersPick == null)
+            {
+               computersPick = hand.playCard();
+            }
+         }
+
+         highCardGame.updateComputerCardAtPlayAreaIndex(computersPick, 1);
+
+         if(cardTable.pnlComputerHand.getComponentCount() > 0)
+         {
+            cardTable.pnlComputerHand.remove(0);
+         }
+
+         for(Component component : inPlay)
+         {
+            final JLabel label = (JLabel)component;
+            if(label.getText().equals("Computer"))
+            {
+               if(highCardGame.getComputerCardAtPlayAreaIndex(1) != null && !highCardGame.getComputerCardAtPlayAreaIndex(1).getErrorFlag())
+               {
+                  label.setIcon(GUICard.getIcon(highCardGame.getComputerCardAtPlayAreaIndex(1)));
+                  return;
+               }
+               else
+               {
+                  label.setIcon(GUICard.getBackCardIcon());
+               }
+            }
+         }
+      }
+      
+      public static JLabel createJLabel(String labelText)
+      {
+         final JLabel playersCard = new JLabel(labelText, JLabel.CENTER);
+         playersCard.setIcon(GUICard.getBackCardIcon());
+         playersCard.setVerticalTextPosition(JLabel.BOTTOM);
+         playersCard.setHorizontalTextPosition(JLabel.CENTER);
+         return playersCard;
+      }
+      
+      public static void startGame(HighCardFramework highCardGame, CardTable cardTable)
+      {
+         // Remove Replay Button from Play
+         cardTable.replayBtn.setVisible(false);
+         cardTable.replayBtn.setEnabled(false);
+
+         // reset points
+         highCardGame.playerPoints = 0;
+         highCardGame.computerPoints = 0;
+
+         highCardGame.newGame();
+         if(!highCardGame.deal())
+         {
+            System.exit(11);
+         }
+         highCardGame.sortHands(); // sort the hands
+         createLabels(highCardGame);
+         addLabelsToPanels(cardTable);
+         initPlayArea(cardTable);
+
+
+         cardTable.replayBtn.addMouseListener(new MouseAdapter()
+         {
+            
+            public void mousePressed(MouseEvent e)
+            {
+               startGame(highCardGame, cardTable);
+            }
+         });
+
+         initEventHandlers(highCardGame, cardTable);
+         cardTable.setVisible(true);
+      }
+      
+      private static void createLabels(HighCardFramework cardGameFramework)
+      {
+         for(int i = 0; i < NUM_CARDS_PER_HAND; i++)
+         {
+            Card tempCard = cardGameFramework.getHand(0).inspectCard(i);
+            humanLabels[i] = new JLabel(GUICard.getIcon(tempCard)); // Player has hand 0
+            humanLabels[i].setName(tempCard.toString());
+            computerLabels[i] = new JLabel(GUICard.getBackCardIcon());
+         }
+      }
+      
+      private static void addLabelsToPanels(CardTable cardTable)
+      {
+         // remove old icons
+         cardTable.pnlHumanHand.removeAll();
+         cardTable.pnlComputerHand.removeAll();
+         // add new icons
+         for(int i = 0; i < NUM_CARDS_PER_HAND; i++)
+         {
+            cardTable.pnlHumanHand.add(humanLabels[i]);
+            cardTable.pnlComputerHand.add(computerLabels[i]);
+         }
+         if(cardTable.pnlPlayArea.getComponents().length <= 0)
+         {
+            cardTable.pnlPlayArea.add(createJLabel("Computer"));
+            cardTable.pnlPlayArea.add(createJLabel("Player"));
+         }
+         cardTable.validate();
+         cardTable.repaint();
+      }
+      
+      private static int valueOf(Card card)
+      {
+         return new String(Card.valueRanks).indexOf(card.getValue());
+      }
+      
+      
 }
 
 //class CardGameFramework  ----------------------------------------------------
@@ -120,7 +318,7 @@ class CardGameFramework
     // add jokers
     for (k = 0; k < numPacks; k++)
        for ( j = 0; j < numJokersPerPack; j++)
-          deck.addCard( new Card('X', Card.Suit.values()[j]) );
+          deck.addCard( new Card('X', Suit.values()[j]) );
 
     // shuffle the cards
     deck.shuffle();
@@ -167,7 +365,7 @@ class CardGameFramework
         cardIndex < 0 || cardIndex > numCardsPerHand - 1)
     {
        //Creates a card that does not work
-       return new Card('M', Card.Suit.spades);      
+       return new Card('M', Suit.Spades);      
     }
  
     // return the card played
@@ -182,11 +380,172 @@ class CardGameFramework
     if (playerIndex < 0 || playerIndex > numPlayers - 1)
        return false;
    
-     // Are there enough Cards?
      if (deck.getNumCards() <= 0)
         return false;
 
      return hand[playerIndex].takeCard(deck.dealCard());
  }
 
+}
+
+class HighCardFramework extends CardGameFramework
+{
+   private static final int PLAYER_INDEX = 0;
+   public boolean playerWonLast = true;
+   public int playerPoints = 0;
+   public int computerPoints = 0;
+   private int cardsInPlayArea;
+   private Card[] playArea;
+
+   public HighCardFramework(int numPacks, int numJokersPerPack,
+                            int numUnusedCardsPerPack,  Card[] unusedCardsPerPack,
+                            int numPlayers, int numCardsPerHand, int cardsInPlayArea)
+   {
+      super(numPacks, numJokersPerPack,
+              numUnusedCardsPerPack, unusedCardsPerPack,
+              numPlayers, numCardsPerHand);
+      this.cardsInPlayArea = cardsInPlayArea;
+      playArea = new Card[cardsInPlayArea];
+   }
+
+   public void newGame()
+   {
+      super.newGame();
+      playerWonLast = true;
+   }
+
+   public boolean updatePlayerCardInPlay(Card playedCard)
+   {
+      playArea[PLAYER_INDEX] = playedCard;
+      return playedCard.equals(playArea[PLAYER_INDEX]);
+   }
+
+   public boolean updateComputerCardAtPlayAreaIndex(Card playedCard, int index)
+   {
+      if(index > 0 && index < cardsInPlayArea)
+      {
+         playArea[index] = playedCard;
+         return true;
+      }
+      else
+      {
+         return false;
+      }
+   }
+
+   public Card getComputerCardAtPlayAreaIndex(int index)
+   {
+      if(index > 0 && index < cardsInPlayArea)
+      {
+         return playArea[index];
+      }
+      else
+      {
+         return new Card('?', Suit.Spades);
+      }
+   }
+
+   public Card getPlayerCardInPlay()
+   {
+      return playArea[PLAYER_INDEX];
+   }
+}
+
+class HighCardAdaptor extends MouseAdapter
+{
+   private final CardTable cardTable;
+   private final HighCardFramework highCardGame;
+
+   public HighCardAdaptor(final CardTable cardTable, final HighCardFramework highCardGame)
+   {
+      this.cardTable = cardTable;
+      this.highCardGame = highCardGame;
+   }
+
+   public void mousePressed(MouseEvent e)
+   {
+      String message = "";
+      final String clickedName = e.getComponent().getName();
+      
+
+      //Identifies name of clicked JLabel and finds associated card in player deck and plays
+      for(int i = 0; i < highCardGame.getHand(0).getNumCards(); i++)
+      {
+         if(highCardGame.getHand(0).inspectCard(i).toString().equals(clickedName))
+         {
+            highCardGame.updatePlayerCardInPlay(highCardGame.getHand(0).playCard(i)); //Move card from hand to play area
+         }
+      }
+      update(e);
+      draw();
+
+      if(highCardGame.playerWonLast)
+      {
+         Assig5_3.computerTurn(highCardGame, cardTable, false);
+         draw();
+      }
+      if(!(highCardGame.playerWonLast = playerWins()))
+      {
+         Assig5_3.computerTurn(highCardGame, cardTable, true);
+         draw();
+      }
+
+      if(highCardGame.getHand(0).getNumCards() <= 0 || highCardGame.getHand(1).getNumCards() <= 0)
+      {
+         cardTable.replayBtn.setEnabled(true);
+         cardTable.replayBtn.setVisible(true);
+         message = highCardGame.playerPoints >= highCardGame.computerPoints ? "Player wins the match" : "Computer wins the match";
+         JOptionPane.showMessageDialog(cardTable, message);
+      }
+   }
+
+   private boolean playerWins()
+   {
+      boolean playerWonCurrent = false; 
+      String message = "";
+
+      // Check who won
+      if(Card.cardValue(highCardGame.getPlayerCardInPlay()) <
+              Card.cardValue(highCardGame.getComputerCardAtPlayAreaIndex(1)))
+      {
+         message = "Player wins the round!";
+         playerWonCurrent = true;
+         highCardGame.playerPoints++;
+      }
+      else if(Card.cardValue(highCardGame.getPlayerCardInPlay()) ==
+              Card.cardValue(highCardGame.getComputerCardAtPlayAreaIndex(1)))
+      {
+         message = "The round is a tie!";
+      }
+      else
+      {
+         message = "Computer wins the round!";
+         highCardGame.computerPoints++;
+      }
+      JOptionPane.showMessageDialog(cardTable, message);
+      Assig5_3.initPlayArea(cardTable);
+      return playerWonCurrent;
+   }
+
+   private void update(MouseEvent e)
+   {
+      JLabel playerCard = null;
+      for(Component component : cardTable.pnlPlayArea.getComponents())
+      {
+         if(((JLabel) component).getText().equals("Player"))
+         {
+            playerCard = (JLabel) component;
+            playerCard.setIcon(((JLabel)e.getComponent()).getIcon()); // update player icon in play area
+            break;
+         }
+      }
+      cardTable.pnlHumanHand.remove(e.getComponent()); // remove card from player hand
+      cardTable.pnlPlayArea.add(playerCard);
+   }
+
+   private void draw()
+   {
+      cardTable.revalidate();
+      cardTable.repaint();
+   }
 }
