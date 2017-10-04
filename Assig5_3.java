@@ -467,7 +467,6 @@ class HighCardAdaptor extends MouseAdapter
       String message = "";
       final String clickedName = e.getComponent().getName();
       
-
       //Identifies name of clicked JLabel and finds associated card in player deck and plays
       for(int i = 0; i < highCardGame.getHand(0).getNumCards(); i++)
       {
@@ -508,18 +507,18 @@ class HighCardAdaptor extends MouseAdapter
       if(Card.cardValue(highCardGame.getPlayerCardInPlay()) <
               Card.cardValue(highCardGame.getComputerCardAtPlayAreaIndex(1)))
       {
-         message = "Player wins the round!";
+         message = "Player wins the round!" + highCardGame.getHand(1).getNumCards();
          playerWonCurrent = true;
          highCardGame.playerPoints++;
       }
       else if(Card.cardValue(highCardGame.getPlayerCardInPlay()) ==
               Card.cardValue(highCardGame.getComputerCardAtPlayAreaIndex(1)))
       {
-         message = "The round is a tie!";
+         message = "The round is a tie!" + highCardGame.getHand(1).getNumCards();
       }
       else
       {
-         message = "Computer wins the round!";
+         message = "Computer wins the round!" + highCardGame.getHand(1).getNumCards();
          highCardGame.computerPoints++;
       }
       JOptionPane.showMessageDialog(cardTable, message);

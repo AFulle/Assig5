@@ -92,8 +92,8 @@ class CardTable extends JFrame {
     public void initReplayButton()
     {
        replayBtn = new JButton("Start New Game");
-       int btnWidth = 100, btnHeight = 30;
-       replayBtn.setBounds((int) getSize().getWidth()/2 - btnWidth/2, (int) getSize().getHeight()/2 - btnHeight/2, btnWidth, btnHeight);
+       int btnWidth = 200, btnHeight = 30;
+       replayBtn.setBounds((int) replayBtn.CENTER, (int) replayBtn.CENTER, btnWidth, btnHeight);
        add(replayBtn);
        replayBtn.setVisible(false);
        replayBtn.setEnabled(false);
@@ -497,11 +497,18 @@ class Hand {
     
     // Method to play Card from Hand
     public Card playCard(int index) {
-        if (index < numCards) {
-            return myCards[index];
-        } else {
-            return null;
-        }
+       if(index < 0 || index > numCards)
+       {
+          return new Card('?', Suit.Diamonds);
+       }
+       Card card = new Card(myCards[index]); // cache temp location of desired card deep copy
+
+       for(int i = index; i < myCards.length - 1; i++)
+       {
+          myCards[i] = myCards[i + 1];
+       }
+       myCards[numCards--] = null; // empty top card spot
+       return card; // return deep copy
     }
     
     // Method to get String representation of Hand
